@@ -61,3 +61,74 @@ For each intermediate input \( x^{(k)} \), compute the gradient of the model’s
 ```math
 \nabla F(x^{(k)})
 ```
+## **Step 4 — Integrate gradients**
+
+Approximate the integral of the gradients along the path using the average of these gradients:
+
+```math
+IG(x) = (x - x') \times \frac{1}{m} \sum_{k=1}^{m} \nabla F(x^{(k)})
+```
+This yields a vector of attribution scores—one for each input feature.
+
+### Step 5 — Interpret results
+
+- Positive attribution → feature supports the prediction.
+- Negative attribution → feature opposes the prediction.
+- Zero (or near-zero) attribution → little or no effect on the prediction.
+
+  ## Pseudocode
+
+```python
+# Inputs: model F, input x, baseline x', target_class, steps m
+
+integrated_gradients = 0
+
+for k in range(1, m + 1):
+    alpha = k / m
+    x_scaled = x' + alpha * (x - x')
+    gradient = compute_gradient(F, x_scaled, target_class)
+    integrated_gradients += gradient
+integrated_gradients = (x - x') * (integrated_gradients / m)
+return integrated_gradients
+
+```
+
+
+
+## Best Practices
+
+- Select a baseline that represents the absence of meaningful input, such as a black image for visual models or the `[PAD]` token embedding for LLMs.
+- Use sufficient interpolation steps (typically 20–300).
+- Normalize or visualize attributions to enhance interpretability.
+- Combine with other XAI methods (e.g., Grad-CAM, SHAP) for complementary insights.
+
+## Example Summary
+
+| Feature / Region | Attribution Value | Interpretation |
+|-----------------|-----------------|----------------|
+| Cat’s face region | +0.35 | Strongly supports “cat” prediction |
+| Background | 0.00 | No influence |
+| Dog nearby | -0.12 | Opposes “cat” prediction |
+
+## Advantages and Limitations
+
+### Advantages
+
+- Theoretically sound (satisfies sensitivity and implementation invariance).
+- Produces smooth, stable attributions compared to raw gradients.
+- Works well with deep neural networks.
+- Provides per-feature or per-pixel importance.
+
+### Limitations
+
+- Requires access to model gradients (not model-agnostic).
+- Sensitive to baseline choice.
+- Computationally intensive for high-dimensional data.
+- Only applicable to differentiable models.
+
+## Summary
+
+Integrated Gradients is a principled and reliable method for interpreting deep learning models.  
+By integrating gradients along a path from a baseline to the actual input, it quantifies how much each input feature contributes to the model’s prediction.  
+This makes IG a powerful tool for understanding, debugging, and trusting neural network behavior.
+
