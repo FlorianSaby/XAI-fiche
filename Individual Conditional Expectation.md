@@ -1,4 +1,4 @@
-# Individual Conditional Expectation (ICE) Plot
+# Individual Conditional Expectation Plot
 
 ## Purpose
 
