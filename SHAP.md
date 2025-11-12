@@ -1,4 +1,4 @@
-# **Shapley Values (SHAP)**
+# **SHapley Additive exPlanations**
 
 ---
 
