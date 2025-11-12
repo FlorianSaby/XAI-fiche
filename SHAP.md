@@ -156,7 +156,7 @@ def shapley_values(model, x, background, features):
 
 ### Limitations
 
-- Exact computation is `O(2^{|F|})` — infeasible beyond ~20 features.  
+- Exact computation is $O(2^{|F|})$ — infeasible beyond ~20 features.  
 
   **Solution:** Use approximation methods such as *KernelSHAP*, *Sampling-based SHAP*, or *TreeSHAP* for tree models, which drastically reduce computation while maintaining accuracy.  
 - Sensitive to background dataset choice  
