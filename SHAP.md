@@ -74,3 +74,96 @@ Evaluate the model:
 ```math
 \phi_i = \sum_{S \subseteq F \setminus \{i\}} \frac{|S|! \, (|F|-|S|-1)!}{|F|!} \Delta_i(S)
 ```
+### Step 5 — Interpret results
+
+- `φ_i > 0`: feature *pushes prediction upward*  
+- `φ_i < 0`: feature *pushes prediction downward*  
+- `φ_i ≈ 0`: feature has *negligible impact*  
+
+---
+
+## Pseudocode
+
+```python
+# Simplified Conceptual SHAP Computation with Comments
+from itertools import combinations
+import math
+
+# Generate all possible subsets (the powerset) of the given feature set
+def powerset(features):
+    return [list(s) for r in range(len(features)+1) for s in combinations(features, r)]
+
+def shapley_values(model, x, background, features):
+    n = len(features)
+    shap = {f: 0.0 for f in features}  # Initialize SHAP values for all features
+
+    # Iterate over each feature i to compute its Shapley value φ_i
+    for i in features:
+        others = [f for f in features if f != i]
+
+        # Consider every subset S of the remaining features
+        for S in powerset(others):
+
+            # Compute Shapley weighting factor:
+            # weight = |S|!(n - |S| - 1)! / n!
+            weight = math.factorial(len(S)) * math.factorial(n - len(S) - 1) / math.factorial(n)
+
+            # --- Model predictions ---
+            # 1. Prediction using only features in subset S
+            x_S = background.mean(axis=0) # Approximate missing features with background mean
+            pred_S = model.predict(x_S.reshape(1, -1))[0]
+
+            # 2. Prediction using features in S plus feature i
+            x_Si = x_S.copy()
+            x_Si[i] = x[i] # Add feature i’s actual value
+            pred_Si = model.predict(x_Si.reshape(1, -1))[0]
+
+            # Accumulate weighted contribution of feature i
+            shap[i] += weight * (pred_Si - pred_S)
+
+    return shap
+
+```
+## Best Practices
+
+- Use `TreeSHAP` for tree-based models (exact, polynomial time)  
+- Apply `KernelSHAP` or `DeepSHAP` for black-box or neural models  
+- Select background data that reflects typical input distribution  
+- Generate *summary plots*, *dependence plots*, and *waterfall plots* for insight  
+- Validate attributions against domain expertise and sensitivity checks  
+
+---
+
+## Example Summary
+
+| Feature         | SHAP Value | Interpretation                     |
+|-----------------|------------|-----------------------------------|
+| Age             | +0.15      | Increases predicted risk by 0.15  |
+| Cholesterol     | -0.08      | Decreases predicted risk by 0.08  |
+| Blood Pressure  | +0.20      | Strongly increases predicted risk |
+| Gender          | 0.00       | No measurable effect               |
+
+---
+
+## Advantages and Limitations
+
+### Advantages
+
+- Model-agnostic with rigorous theoretical foundation  
+- Fairly distributes credit across all feature interactions  
+- Local (per-instance) and global (summary) explanations  
+- Additive across ensemble or stacked models  
+
+### Limitations
+
+- Exact computation is `O(2^{|F|})` — infeasible beyond ~20 features.  
+
+  **Solution:** Use approximation methods such as *KernelSHAP*, *Sampling-based SHAP*, or *TreeSHAP* for tree models, which drastically reduce computation while maintaining accuracy.  
+- Sensitive to background dataset choice  
+- May misattribute in presence of strong feature correlations (use SHAP interaction values to diagnose)  
+
+---
+
+## Summary
+
+Shapley Values (SHAP) offer a *unified, game-theoretic framework* for fair feature attribution in machine learning. By marginalizing over all possible feature coalitions, SHAP captures both direct effects and complex interactions — making it an essential tool for building trust and transparency in high-stakes AI systems.
