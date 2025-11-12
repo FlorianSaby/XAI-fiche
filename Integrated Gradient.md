@@ -1,5 +1,4 @@
-# **Integrated Gradients (IG)**  
-*Explainable AI (XAI) Method Summary*  
+# **Integrated Gradients**  
 
 ---
 
